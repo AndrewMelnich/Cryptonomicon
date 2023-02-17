@@ -1,4 +1,3 @@
-// import { loadtickersHandlers } from "core-js/core/string";
 const API_KEY =
   "380ec498044c900f249ad39326e8320a2cb4ee09b94afe4dff6911e37ef56bfc";
 
@@ -8,17 +7,24 @@ const socket = new WebSocket(
 );
 
 const AGGREGATE_INDEX = "5";
+let isTicker = false;
 
 socket.addEventListener("message", e => {
   const { TYPE: type, FROMSYMBOL: currency, PRICE: newPrice } = JSON.parse(
     e.data
   );
+
+  if (type !== 500) {
+    isTicker = true;
+  }
+
   if (type !== AGGREGATE_INDEX || newPrice === undefined) {
     return;
   }
 
   const handlers = tickersHandlers.get(currency) ?? [];
-  handlers.forEach(fn => fn(newPrice));
+
+  handlers.forEach(fn => fn(newPrice, isTicker));
 });
 
 function sendToWebSocket(message) {
